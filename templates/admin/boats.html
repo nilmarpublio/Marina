@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão de Embarcações - Marina{% endblock %}
+{% block page_title %}Gestão de Embarcações{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Lista de Embarcações</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newBoatModal">
+                    <i class="bi bi-ship me-2"></i>Nova Embarcação
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Proprietário</th>
+                                <th>Dimensões</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for boat in boats %}
+                            <tr>
+                                <td>{{ boat.name }}</td>
+                                <td>{{ boat.type or 'Não informado' }}</td>
+                                <td>{{ boat.owner_name or 'Sem proprietário' }}</td>
+                                <td>{{ boat.length }}m x {{ boat.width }}m</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if boat.status == 'active' else 'warning' }}">
+                                        {{ 'Ativo' if boat.status == 'active' else 'Inativo' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editBoat({{ boat.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewBoat({{ boat.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBoat({{ boat.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nova Embarcação -->
+<div class="modal fade" id="newBoatModal" tabindex="-1" aria-labelledby="newBoatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newBoatModalLabel">
+                    <i class="bi bi-ship me-2"></i>Cadastrar Nova Embarcação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newBoatForm" method="POST" action="{{ url_for('admin_boats_create') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome da Embarcação *</label>
+                            <input type="text" class="form-control" name="name" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Tipo de Embarcação *</label>
+                            <select class="form-select" name="type" id="type" required>
+                                <option value="">Selecione um tipo</option>
+                                <option value="lancha">Lancha</option>
+                                <option value="veleiro">Veleiro</option>
+                                <option value="iate">Iate</option>
+                                <option value="jetski">Jet Ski</option>
+                                <option value="catamarã">Catamarã</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="length" class="form-label">Comprimento (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="length" id="length" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="width" class="form-label">Largura (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="width" id="width" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="owner_id" class="form-label">Proprietário *</label>
+                            <select class="form-select" name="owner_id" id="owner_id" required>
+                                <option value="">Selecione um proprietário</option>
+                                {% for associate in associates %}
+                                <option value="{{ associate.id }}">{{ associate.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="maintenance">Em Manutenção</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="registration_number" class="form-label">Número de Registro</label>
+                        <input type="text" class="form-control" name="registration_number" id="registration_number">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="engine_type" class="form-label">Tipo de Motor</label>
+                        <input type="text" class="form-control" name="engine_type" id="engine_type">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="engine_power" class="form-label">Potência do Motor</label>
+                        <input type="text" class="form-control" name="engine_power" id="engine_power">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="boat_image" class="form-label">Foto da Embarcação</label>
+                        <input type="file" class="form-control" name="boat_image" id="boat_image" accept="image/*">
+                        <div class="form-text">Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Cadastrar Embarcação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Embarcação -->
+<div class="modal fade" id="editBoatModal" tabindex="-1" aria-labelledby="editBoatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBoatModalLabel">
+                    <i class="bi bi-pencil me-2"></i>Editar Embarcação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBoatForm" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="boat_id" id="edit_boat_id">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_name" class="form-label">Nome da Embarcação *</label>
+                            <input type="text" class="form-control" name="name" id="edit_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_type" class="form-label">Tipo de Embarcação *</label>
+                            <select class="form-select" name="type" id="edit_type" required>
+                                <option value="">Selecione um tipo</option>
+                                <option value="lancha">Lancha</option>
+                                <option value="veleiro">Veleiro</option>
+                                <option value="iate">Iate</option>
+                                <option value="jetski">Jet Ski</option>
+                                <option value="catamarã">Catamarã</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_length" class="form-label">Comprimento (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="length" id="edit_length" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_width" class="form-label">Largura (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="width" id="edit_width" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_owner_id" class="form-label">Proprietário *</label>
+                            <select class="form-select" name="owner_id" id="edit_owner_id" required>
+                                <option value="">Selecione um proprietário</option>
+                                {% for associate in associates %}
+                                <option value="{{ associate.id }}">{{ associate.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="edit_status">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="maintenance">Em Manutenção</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_registration_number" class="form-label">Número de Registro</label>
+                        <input type="text" class="form-control" name="registration_number" id="edit_registration_number">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_engine_type" class="form-label">Tipo de Motor</label>
+                        <input type="text" class="form-control" name="engine_type" id="edit_engine_type">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_engine_power" class="form-label">Potência do Motor</label>
+                        <input type="text" class="form-control" name="engine_power" id="edit_engine_power">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_boat_image" class="form-label">Atualizar Foto</label>
+                        <input type="file" class="form-control" name="boat_image" id="edit_boat_image" accept="image/*">
+                        <div class="form-text">Deixe em branco para manter a foto atual.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar Embarcação -->
+<div class="modal fade" id="viewBoatModal" tabindex="-1" aria-labelledby="viewBoatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewBoatModalLabel">
+                    <i class="bi bi-eye me-2"></i>Detalhes da Embarcação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="boatDetails">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Função para editar embarcação
+function editBoat(id) {
+    // Aqui você faria uma requisição AJAX para buscar os dados da embarcação
+    // Por enquanto, vamos apenas abrir o modal
+    const modal = new bootstrap.Modal(document.getElementById('editBoatModal'));
+    modal.show();
+}
+
+// Função para visualizar embarcação
+function viewBoat(id) {
+    // Aqui você faria uma requisição AJAX para buscar os dados da embarcação
+    // Por enquanto, vamos apenas abrir o modal com dados de exemplo
+    document.getElementById('boatDetails').innerHTML = `
+        <div class="text-center mb-4">
+            <img src="/static/images/boat-placeholder.jpg" alt="Foto da Embarcação" class="img-fluid rounded" style="max-height: 200px;">
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Nome:</strong> Vento Sul</p>
+                <p><strong>Tipo:</strong> Veleiro</p>
+                <p><strong>Proprietário:</strong> João Silva</p>
+                <p><strong>Dimensões:</strong> 8m x 3m</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Registro:</strong> BR12345</p>
+                <p><strong>Motor:</strong> Yamaha 150HP</p>
+                <p><strong>Status:</strong> <span class="badge bg-success">Ativo</span></p>
+                <p><strong>Data Cadastro:</strong> 01/01/2024</p>
+            </div>
+        </div>
+        <hr>
+        <h6>Histórico de Movimentações:</h6>
+        <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Entrada na marina
+                <span class="badge bg-primary rounded-pill">15/01/2024</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Saída para passeio
+                <span class="badge bg-primary rounded-pill">20/01/2024</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Retorno à marina
+                <span class="badge bg-primary rounded-pill">20/01/2024</span>
+            </li>
+        </ul>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewBoatModal'));
+    modal.show();
+}
+
+// Função para deletar embarcação
+function deleteBoat(id) {
+    if (confirm('Tem certeza que deseja excluir esta embarcação? Esta ação não pode ser desfeita.')) {
+        // Aqui você faria uma requisição AJAX para deletar a embarcação
+        alert('Funcionalidade de exclusão será implementada.');
+    }
+}
+</script>
+{% endblock %}

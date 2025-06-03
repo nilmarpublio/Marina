@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard do Associado - Marina{% endblock %}
+{% block page_title %}Dashboard do Associado{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome Card -->
+    <div class="col-12 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="card-title mb-2">Bem-vindo, {{ session.user_name }}!</h4>
+                        <p class="card-text mb-0">Área do associado da marina</p>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-circle" style="font-size: 3rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- My Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Minhas Informações</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> <span class="badge bg-success">Ativo</span></p>
+                <p><strong>Plano:</strong> Vaga Molhada Mensal</p>
+                <p><strong>Vencimento:</strong> 15/01/2025</p>
+                <p><strong>Embarcações:</strong> 1 cadastrada</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-calendar-plus me-2"></i>Novo Agendamento
+                    </button>
+                    <button class="btn btn-outline-success">
+                        <i class="bi bi-ship me-2"></i>Cadastrar Embarcação
+                    </button>
+                    <button class="btn btn-outline-info">
+                        <i class="bi bi-file-earmark me-2"></i>Enviar Documento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Appointments -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Meus Agendamentos</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Serviço</th>
+                                <th>Embarcação</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>15/01/2025 14:00</td>
+                                <td>Guincho</td>
+                                <td>Meu Barco</td>
+                                <td><span class="badge bg-warning">Pendente</span></td>
+                            </tr>
+                            <tr>
+                                <td>10/01/2025 09:00</td>
+                                <td>Limpeza</td>
+                                <td>Meu Barco</td>
+                                <td><span class="badge bg-success">Concluído</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

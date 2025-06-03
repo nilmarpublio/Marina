@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil do Associado - Marina{% endblock %}
+{% block page_title %}Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- User Information -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Informações Pessoais</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="name" value="{{ user.name }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="cpf" value="{{ user.cpf }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="phone" value="{{ user.phone }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço</label>
+                        <input type="text" class="form-control" id="address" value="{{ user.address }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salvar Alterações
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Status -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Status da Conta</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> <span class="badge bg-success">Ativo</span></p>
+                <p><strong>Plano:</strong> {{ user.plan or 'Não definido' }}</p>
+                <p><strong>Membro desde:</strong> {{ user.created_at }}</p>
+                <hr>
+                <button class="btn btn-outline-warning w-100 mb-2">
+                    <i class="bi bi-key me-2"></i>Alterar Senha
+                </button>
+                <button class="btn btn-outline-info w-100">
+                    <i class="bi bi-download me-2"></i>Baixar Contrato
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- My Boats -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Minhas Embarcações</h5>
+                <button class="btn btn-primary">
+                    <i class="bi bi-ship me-2"></i>Cadastrar Embarcação
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Dimensões</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for boat in boats %}
+                            <tr>
+                                <td>{{ boat.name }}</td>
+                                <td>{{ boat.type or 'Não informado' }}</td>
+                                <td>{{ boat.length }}m x {{ boat.width }}m</td>
+                                <td>
+                                    <span class="badge bg-success">Ativo</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">Nenhuma embarcação cadastrada</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

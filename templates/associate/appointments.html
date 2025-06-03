@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Agendamentos - Marina{% endblock %}
+{% block page_title %}Meus Agendamentos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Meus Agendamentos</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAppointmentModal">
+                    <i class="bi bi-calendar-plus me-2"></i>Novo Agendamento
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Embarcação</th>
+                                <th>Serviço</th>
+                                <th>Funcionário</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.scheduled_date }}</td>
+                                <td>{{ appointment.boat_name or 'N/A' }}</td>
+                                <td>{{ appointment.service_type }}</td>
+                                <td>{{ appointment.employee_name or 'Não atribuído' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'warning' if appointment.status == 'pending' else 'success' if appointment.status == 'confirmed' else 'primary' if appointment.status == 'completed' else 'danger' }}">
+                                        {{ 'Pendente' if appointment.status == 'pending' else 'Confirmado' if appointment.status == 'confirmed' else 'Concluído' if appointment.status == 'completed' else 'Cancelado' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if appointment.status == 'pending' %}
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x"></i> Cancelar
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">Nenhum agendamento encontrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Agendamento -->
+<div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-labelledby="newAppointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newAppointmentModalLabel">
+                    <i class="bi bi-calendar-plus me-2"></i>Novo Agendamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newAppointmentForm" method="POST" action="{{ url_for('associate_appointments_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="boat_id" class="form-label">Embarcação</label>
+                            <select class="form-select" name="boat_id" id="boat_id">
+                                <option value="">Selecione uma embarcação (opcional)</option>
+                                {% for boat in boats %}
+                                <option value="{{ boat.id }}">{{ boat.name }} ({{ boat.type|title }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Deixe em branco se o serviço não for específico para uma embarcação</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="scheduled_date" class="form-label">Data e Hora *</label>
+                            <input type="datetime-local" class="form-control" name="scheduled_date" id="scheduled_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="service_type" class="form-label">Tipo de Serviço *</label>
+                        <select class="form-select" name="service_type" id="service_type" required>
+                            <option value="">Selecione um serviço</option>
+                            <option value="crane">Guincho</option>
+                            <option value="fuel">Abastecimento</option>
+                            <option value="cleaning">Limpeza</option>
+                            <option value="maintenance">Manutenção</option>
+                            <option value="entry">Entrada na Marina</option>
+                            <option value="exit">Saída da Marina</option>
+                            <option value="inspection">Inspeção</option>
+                            <option value="other">Outros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição do Serviço *</label>
+                        <textarea class="form-control" name="description" id="description" rows="4" required placeholder="Descreva detalhadamente o serviço solicitado..."></textarea>
+                        <div class="form-text">Seja específico sobre o que precisa para agilizar o atendimento</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="estimated_duration" class="form-label">Duração Estimada (minutos)</label>
+                            <select class="form-select" name="estimated_duration" id="estimated_duration">
+                                <option value="">Não sei informar</option>
+                                <option value="30">30 minutos</option>
+                                <option value="60">1 hora</option>
+                                <option value="90">1h 30min</option>
+                                <option value="120">2 horas</option>
+                                <option value="180">3 horas</option>
+                                <option value="240">4 horas</option>
+                                <option value="480">Dia todo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">Prioridade</label>
+                            <select class="form-select" name="priority" id="priority">
+                                <option value="normal">Normal</option>
+                                <option value="high">Alta</option>
+                                <option value="urgent">Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Informações importantes:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Agendamentos devem ser feitos com pelo menos 24h de antecedência</li>
+                            <li>Serviços urgentes podem ter taxa adicional</li>
+                            <li>Você receberá confirmação por email quando o agendamento for aprovado</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>Solicitar Agendamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Definir data mínima como amanhã
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('scheduled_date');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(8, 0, 0, 0); // Definir horário padrão 8:00
+    
+    // Formato para datetime-local: YYYY-MM-DDTHH:MM
+    const minDate = tomorrow.toISOString().slice(0, 16);
+    dateInput.min = minDate;
+    
+    // Definir valor padrão
+    dateInput.value = minDate;
+});
+
+// Validação do formulário
+document.getElementById('newAppointmentForm').addEventListener('submit', function(e) {
+    const scheduledDate = new Date(document.getElementById('scheduled_date').value);
+    const now = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (scheduledDate < tomorrow) {
+        e.preventDefault();
+        alert('Agendamentos devem ser feitos com pelo menos 24h de antecedência!');
+        return false;
+    }
+    
+    // Verificar se é horário comercial (8h às 18h)
+    const hour = scheduledDate.getHours();
+    if (hour < 8 || hour >= 18) {
+        if (!confirm('O horário selecionado está fora do horário comercial (8h às 18h). Deseja continuar mesmo assim?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+
+// Atualizar descrição baseada no tipo de serviço
+document.getElementById('service_type').addEventListener('change', function() {
+    const descriptions = {
+        'crane': 'Solicito o uso do guincho para movimentação da embarcação.',
+        'fuel': 'Solicito abastecimento da embarcação.',
+        'cleaning': 'Solicito serviço de limpeza da embarcação.',
+        'maintenance': 'Solicito serviço de manutenção na embarcação.',
+        'entry': 'Solicito entrada da embarcação na marina.',
+        'exit': 'Solicito saída da embarcação da marina.',
+        'inspection': 'Solicito inspeção da embarcação.',
+        'other': ''
+    };
+    
+    const descriptionField = document.getElementById('description');
+    if (descriptions[this.value] !== undefined) {
+        descriptionField.value = descriptions[this.value];
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

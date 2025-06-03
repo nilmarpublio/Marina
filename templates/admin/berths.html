@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão de Vagas - Marina{% endblock %}
+{% block page_title %}Gestão de Vagas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Mapa de Vagas</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newBerthModal">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Vaga
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Dimensões</th>
+                                <th>Status</th>
+                                <th>Embarcação</th>
+                                <th>Proprietário</th>
+                                <th>Taxa Mensal</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for berth in berths %}
+                            <tr>
+                                <td><strong>{{ berth.number }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'primary' if berth.type == 'wet' else 'secondary' }}">
+                                        {{ 'Molhada' if berth.type == 'wet' else 'Seca' }}
+                                    </span>
+                                </td>
+                                <td>{{ berth.length }}m x {{ berth.width }}m</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if berth.status == 'occupied' else 'warning' if berth.status == 'available' else 'danger' if berth.status == 'maintenance' else 'info' }}">
+                                        {{ 'Ocupada' if berth.status == 'occupied' else 'Disponível' if berth.status == 'available' else 'Manutenção' if berth.status == 'maintenance' else 'Reservada' }}
+                                    </span>
+                                </td>
+                                <td>{{ berth.boat_name or '-' }}</td>
+                                <td>{{ berth.owner_name or '-' }}</td>
+                                <td>
+                                    {% if berth.monthly_rate %}
+                                        R$ {{ "%.2f"|format(berth.monthly_rate) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editBerth({{ berth.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewBerth({{ berth.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBerth({{ berth.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nova Vaga -->
+<div class="modal fade" id="newBerthModal" tabindex="-1" aria-labelledby="newBerthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newBerthModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Cadastrar Nova Vaga
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newBerthForm" method="POST" action="{{ url_for('admin_berths_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="number" class="form-label">Número da Vaga *</label>
+                            <input type="text" class="form-control" name="number" id="number" required placeholder="Ex: A01, B15, C03">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Tipo de Vaga *</label>
+                            <select class="form-select" name="type" id="type" required>
+                                <option value="">Selecione um tipo</option>
+                                <option value="wet">Vaga Molhada (na água)</option>
+                                <option value="dry">Vaga Seca (no pátio)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="length" class="form-label">Comprimento (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="length" id="length" required placeholder="Ex: 12.5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="width" class="form-label">Largura (metros) *</label>
+                            <input type="number" step="0.01" class="form-control" name="width" id="width" required placeholder="Ex: 4.0">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="monthly_rate" class="form-label">Taxa Mensal (R$)</label>
+                            <input type="number" step="0.01" class="form-control" name="monthly_rate" id="monthly_rate" placeholder="Ex: 1500.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="available">Disponível</option>
+                                <option value="occupied">Ocupada</option>
+                                <option value="maintenance">Manutenção</option>
+                                <option value="reserved">Reservada</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="boat_id" class="form-label">Embarcação (se ocupada)</label>
+                        <select class="form-select" name="boat_id" id="boat_id">
+                            <option value="">Selecione uma embarcação</option>
+                            {% for boat in boats %}
+                            <option value="{{ boat.id }}">
+                                {{ boat.name }} 
+                                {% if boat.type %}({{ boat.type|title }}){% endif %}
+                                - {{ boat.owner_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Selecione apenas se a vaga estiver ocupada. Lista mostra: Nome da Embarcação (Tipo) - Proprietário
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Dicas:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Vagas Molhadas:</strong> Para embarcações que ficam na água (píer, marina)</li>
+                            <li><strong>Vagas Secas:</strong> Para embarcações no pátio (trailers, cavaletes)</li>
+                            <li><strong>Numeração:</strong> Use padrão como A01, B15, C03 para facilitar localização</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Cadastrar Vaga
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Vaga -->
+<div class="modal fade" id="editBerthModal" tabindex="-1" aria-labelledby="editBerthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBerthModalLabel">
+                    <i class="bi bi-pencil me-2"></i>Editar Vaga
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBerthForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="berth_id" id="edit_berth_id">
+                    <!-- Campos similares ao modal de criação -->
+                    <p class="text-muted">Funcionalidade de edição será implementada em breve.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar Vaga -->
+<div class="modal fade" id="viewBerthModal" tabindex="-1" aria-labelledby="viewBerthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewBerthModalLabel">
+                    <i class="bi bi-eye me-2"></i>Detalhes da Vaga
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="berthDetails">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Função para editar vaga
+function editBerth(id) {
+    // Implementar edição
+    const modal = new bootstrap.Modal(document.getElementById('editBerthModal'));
+    modal.show();
+}
+
+// Função para visualizar vaga
+function viewBerth(id) {
+    // Dados de exemplo - implementar busca real
+    document.getElementById('berthDetails').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Número:</strong> A15</p>
+                <p><strong>Tipo:</strong> <span class="badge bg-primary">Vaga Molhada</span></p>
+                <p><strong>Dimensões:</strong> 12.0m x 4.0m</p>
+                <p><strong>Taxa Mensal:</strong> R$ 1.500,00</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Status:</strong> <span class="badge bg-success">Ocupada</span></p>
+                <p><strong>Embarcação:</strong> Vento Sul</p>
+                <p><strong>Proprietário:</strong> João Silva</p>
+                <p><strong>Data Ocupação:</strong> 15/01/2024</p>
+            </div>
+        </div>
+        <hr>
+        <h6>Histórico de Ocupação:</h6>
+        <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                João Silva - Vento Sul
+                <span class="badge bg-primary rounded-pill">15/01/2024 - Atual</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Maria Santos - Brisa do Mar
+                <span class="badge bg-secondary rounded-pill">01/06/2023 - 10/01/2024</span>
+            </li>
+        </ul>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewBerthModal'));
+    modal.show();
+}
+
+// Função para deletar vaga
+function deleteBerth(id) {
+    if (confirm('Tem certeza que deseja excluir esta vaga? Esta ação não pode ser desfeita.')) {
+        // Implementar exclusão
+        alert('Funcionalidade de exclusão será implementada.');
+    }
+}
+
+// Controlar visibilidade do campo embarcação baseado no status
+document.getElementById('status').addEventListener('change', function() {
+    const boatField = document.getElementById('boat_id');
+    const boatFieldContainer = boatField.closest('.mb-3');
+    
+    if (this.value === 'occupied') {
+        boatFieldContainer.style.display = 'block';
+        boatField.required = true;
+    } else {
+        boatFieldContainer.style.display = 'none';
+        boatField.required = false;
+        boatField.value = '';
+    }
+});
+
+// Inicializar estado do campo embarcação
+document.addEventListener('DOMContentLoaded', function() {
+    const statusField = document.getElementById('status');
+    statusField.dispatchEvent(new Event('change'));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Sistema de Gestão de Marina</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-control {
+            border-radius: 25px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #1976d2, #42a5f5);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-weight: bold;
+        }
+        
+        .header-section {
+            background: linear-gradient(45deg, #1976d2, #42a5f5);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="register-container">
+            <div class="header-section">
+                <i class="bi bi-water" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <h2 class="mb-2">Cadastro de Associado</h2>
+                <p class="mb-0">Preencha os dados abaixo para se cadastrar na marina</p>
+            </div>
+            
+            <div class="p-4">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">E-mail *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" name="cpf" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Telefone *</label>
+                            <input type="text" class="form-control" name="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço Completo *</label>
+                        <input type="text" class="form-control" name="address" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Senha *</label>
+                            <input type="password" class="form-control" name="password" required minlength="6">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Confirmar Senha *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary me-md-2">
+                            Voltar ao Login
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Cadastrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

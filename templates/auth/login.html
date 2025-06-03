@@ -1,0 +1,225 @@
+&lt;!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Gestão de Marina</title>
+    
+    &lt;!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    &lt;!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .login-form {
+            padding: 60px 40px;
+        }
+        
+        .login-image {
+            background: linear-gradient(45deg, #1976d2, #42a5f5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 60px 40px;
+        }
+        
+        .form-control {
+            border-radius: 25px;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #1976d2, #42a5f5);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(25, 118, 210, 0.4);
+        }
+        
+        .btn-outline-primary {
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-weight: bold;
+            border: 2px solid #1976d2;
+            color: #1976d2;
+        }
+        
+        .input-group-text {
+            border-radius: 25px 0 0 25px;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+            background: #f8f9fa;
+        }
+        
+        .input-group .form-control {
+            border-radius: 0 25px 25px 0;
+            border-left: none;
+        }
+        
+        .input-group:focus-within .input-group-text {
+            border-color: #1976d2;
+        }
+        
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                border-radius: 15px;
+            }
+            
+            .login-form, .login-image {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="row g-0">
+            <div class="col-lg-6">
+                <div class="login-image h-100">
+                    <div>
+                        <i class="bi bi-water" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                        <h2 class="mb-4">Sistema de Gestão de Marina</h2>
+                        <p class="lead">Gerencie sua marina de forma eficiente e profissional</p>
+                        <div class="mt-4">
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <span>Gestão completa de associados</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <span>Controle de embarcações e vagas</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <span>Sistema financeiro integrado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="login-form">
+                    <div class="text-center mb-5">
+                        <h3 class="fw-bold text-dark">Bem-vindo de volta!</h3>
+                        <p class="text-muted">Faça login para acessar o sistema</p>
+                    </div>
+                    
+                    &lt;!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" name="email" placeholder="Seu e-mail" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" name="password" placeholder="Sua senha" required>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label text-muted" for="rememberMe">
+                                    Lembrar-me
+                                </label>
+                            </div>
+                            <a href="#" class="text-decoration-none">Esqueceu a senha?</a>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                        </button>
+                        
+                        <div class="text-center">
+                            <span class="text-muted">Não tem uma conta? </span>
+                            <a href="{{ url_for('register') }}" class="text-decoration-none fw-bold">Cadastre-se aqui</a>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <strong>Usuário de teste:</strong><br>
+                            Email: admin@marina.com<br>
+                            Senha: admin123
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    &lt;!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

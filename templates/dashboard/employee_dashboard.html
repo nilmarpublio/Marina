@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard do Funcionário - Marina{% endblock %}
+{% block page_title %}Dashboard do Funcionário{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome Card -->
+    <div class="col-12 mb-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="card-title mb-2">Bem-vindo, {{ session.user_name }}!</h4>
+                        <p class="card-text mb-0">Área do funcionário da marina</p>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-badge" style="font-size: 3rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Messages -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Avisos Recebidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Manutenção programada</h6>
+                            <small>3 dias atrás</small>
+                        </div>
+                        <p class="mb-1">Realizar manutenção preventiva na bomba de combustível.</p>
+                        <small>De: Administrador</small>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Novo agendamento</h6>
+                            <small>1 semana atrás</small>
+                        </div>
+                        <p class="mb-1">Agendamento de guincho para amanhã às 14h.</p>
+                        <small>De: João Silva (Associado)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

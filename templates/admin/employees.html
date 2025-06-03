@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão de Funcionários - Marina{% endblock %}
+{% block page_title %}Gestão de Funcionários{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Lista de Funcionários</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEmployeeModal">
+                    <i class="bi bi-person-plus me-2"></i>Novo Funcionário
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Status</th>
+                                <th>Data Cadastro</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr>
+                                <td>{{ employee.name }}</td>
+                                <td>{{ employee.email }}</td>
+                                <td>{{ employee.phone }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if employee.status == 'active' else 'danger' }}">
+                                        {{ 'Ativo' if employee.status == 'active' else 'Inativo' }}
+                                    </span>
+                                </td>
+                                <td>{{ employee.created_at }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-envelope"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">Nenhum funcionário encontrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Funcionário -->
+<div class="modal fade" id="newEmployeeModal" tabindex="-1" aria-labelledby="newEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newEmployeeModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>Cadastrar Novo Funcionário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newEmployeeForm" method="POST" action="{{ url_for('admin_employees_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-control" name="name" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">E-mail *</label>
+                            <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" name="cpf" id="cpf" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Telefone *</label>
+                            <input type="text" class="form-control" name="phone" id="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço Completo *</label>
+                        <input type="text" class="form-control" name="address" id="address" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="position" class="form-label">Cargo/Função</label>
+                            <select class="form-select" name="position" id="position">
+                                <option value="">Selecione um cargo</option>
+                                <option value="operator">Operador de Guincho</option>
+                                <option value="maintenance">Manutenção</option>
+                                <option value="security">Segurança</option>
+                                <option value="cleaning">Limpeza</option>
+                                <option value="fuel_attendant">Frentista</option>
+                                <option value="general">Serviços Gerais</option>
+                                <option value="supervisor">Supervisor</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="suspended">Suspenso</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Senha *</label>
+                            <input type="password" class="form-control" name="password" id="password" required minlength="6">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Confirmar Senha *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hire_date" class="form-label">Data de Contratação</label>
+                            <input type="date" class="form-control" name="hire_date" id="hire_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="salary" class="form-label">Salário (R$)</label>
+                            <input type="number" step="0.01" class="form-control" name="salary" id="salary">
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Informação:</strong> O funcionário receberá um e-mail com as credenciais de acesso ao sistema.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Cadastrar Funcionário
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Validação do formulário de novo funcionário
+document.getElementById('newEmployeeForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('As senhas não coincidem!');
+        return false;
+    }
+});
+
+// Máscaras para CPF e telefone
+document.getElementById('cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+});
+
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+</script>
+{% endblock %}
+{% endblock %}

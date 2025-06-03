@@ -1,0 +1,333 @@
+&lt;!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestão de Marina{% endblock %}</title>
+    
+    &lt;!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    &lt;!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        /* Custom styles based on user role */
+        {% if session.user_role == 'admin' %}
+        body { background-color: #e3f2fd; }
+        .sidebar { background-color: #1976d2; }
+        .navbar { background-color: #1565c0; }
+        {% elif session.user_role == 'associate' %}
+        body { background-color: #e8f5e8; }
+        .sidebar { background-color: #388e3c; }
+        .navbar { background-color: #2e7d32; }
+        {% elif session.user_role == 'employee' %}
+        body { background-color: #fff8e1; }
+        .sidebar { background-color: #f57c00; }
+        .navbar { background-color: #ef6c00; }
+        {% endif %}
+        
+        .sidebar {
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar .nav-link {
+            color: white;
+            padding: 15px 20px;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            transition: all 0.3s;
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+        
+        .navbar {
+            margin-left: 250px;
+            transition: all 0.3s;
+        }
+        
+        .navbar.expanded {
+            margin-left: 80px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            border-radius: 25px;
+            padding: 10px 25px;
+        }
+        
+        .table {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content, .navbar {
+                margin-left: 0;
+            }
+            
+            .sidebar.collapsed {
+                width: 100%;
+            }
+        }
+        
+        .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: auto;
+        }
+        
+        .user-info small {
+            color: rgba(255,255,255,0.8);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session.user_id %}
+    &lt;!-- Sidebar -->
+    <nav class="sidebar d-flex flex-column" id="sidebar">
+        <div class="logo">
+            <h4><i class="bi bi-water"></i> Marina</h4>
+        </div>
+        
+        <ul class="nav flex-column flex-grow-1">
+            {% if session.user_role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_associates') }}">
+                    <i class="bi bi-people"></i> Gestão de Associados
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_boats') }}">
+                    <i class="bi bi-ship"></i> Gestão de Embarcações
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_berths') }}">
+                    <i class="bi bi-grid-3x3"></i> Gestão de Vagas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_appointments') }}">
+                    <i class="bi bi-calendar-check"></i> Agendamentos e Serviços
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_financial') }}">
+                    <i class="bi bi-currency-dollar"></i> Gestão Financeira
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_employees') }}">
+                    <i class="bi bi-person-badge"></i> Gestão de Funcionários
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_reports') }}">
+                    <i class="bi bi-graph-up"></i> Relatórios e Painel
+                </a>
+            </li>
+            {% elif session.user_role == 'associate' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('associate_profile') }}">
+                    <i class="bi bi-person"></i> Perfil do Associado
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('associate_appointments') }}">
+                    <i class="bi bi-calendar-check"></i> Agendamentos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('associate_financial') }}">
+                    <i class="bi bi-currency-dollar"></i> Financeiro
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('associate_documents') }}">
+                    <i class="bi bi-file-earmark-text"></i> Documentação
+                </a>
+            </li>
+            {% elif session.user_role == 'employee' %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('employee_messages') }}">
+                    <i class="bi bi-envelope"></i> Avisos Recebidos
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('messages') }}">
+                    <i class="bi bi-chat-dots"></i> Mensagens
+                </a>
+            </li>
+        </ul>
+        
+        <div class="p-3 border-top">
+            <div class="text-white">
+                <strong>{{ session.user_name }}</strong><br>
+                <small>{{ session.user_role|title }}</small>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm mt-2">
+                <i class="bi bi-box-arrow-right"></i> Sair
+            </a>
+        </div>
+    </nav>
+    
+    &lt;!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" id="topNavbar">
+        <div class="container-fluid">
+            <button class="btn btn-outline-light me-3" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="navbar-brand mb-0 h1">{% block page_title %}Sistema de Gestão de Marina{% endblock %}</span>
+            
+            <div class="ms-auto">
+                <span class="text-white me-3">
+                    <i class="bi bi-clock"></i> <span id="currentTime"></span>
+                </span>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    &lt;!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="container-fluid p-4">
+            &lt;!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    &lt;!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar toggle functionality
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const topNavbar = document.getElementById('topNavbar');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            topNavbar.classList.toggle('expanded');
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Current time update
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.innerHTML = '<i class="bi bi-clock"></i> ' + timeString;
+            }
+        }
+
+        // Initialize time display and update every minute
+        updateTime();
+        setInterval(updateTime, 60000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

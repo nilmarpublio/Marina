@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Documentos - Marina{% endblock %}
+{% block page_title %}Meus Documentos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Meus Documentos</h5>
+                <button class="btn btn-primary">
+                    <i class="bi bi-upload me-2"></i>Enviar Documento
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Embarcação</th>
+                                <th>Nome do Arquivo</th>
+                                <th>Data Upload</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for document in documents %}
+                            <tr>
+                                <td>{{ document.document_type }}</td>
+                                <td>{{ document.boat_name or 'Pessoal' }}</td>
+                                <td>{{ document.file_name }}</td>
+                                <td>{{ document.uploaded_at }}</td>
+                                <td>{{ document.expiry_date or 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if document.status == 'valid' else 'warning' if document.status == 'pending_review' else 'danger' }}">
+                                        {{ 'Válido' if document.status == 'valid' else 'Em Análise' if document.status == 'pending_review' else 'Expirado' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Baixar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Excluir
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum documento encontrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

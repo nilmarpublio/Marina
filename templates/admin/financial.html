@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão Financeira - Marina{% endblock %}
+{% block page_title %}Gestão Financeira{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Registros Financeiros</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newFinancialModal">
+                    <i class="bi bi-plus-circle me-2"></i>Novo Lançamento
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Associado</th>
+                                <th>Tipo</th>
+                                <th>Categoria</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in financial_records %}
+                            <tr>
+                                <td>{{ record.created_at }}</td>
+                                <td>{{ record.user_name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if record.type == 'income' else 'danger' }}">
+                                        {{ 'Receita' if record.type == 'income' else 'Despesa' }}
+                                    </span>
+                                </td>
+                                <td>{{ record.category }}</td>
+                                <td>{{ record.description }}</td>
+                                <td>R$ {{ "%.2f"|format(record.amount) }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if record.status == 'paid' else 'warning' if record.status == 'pending' else 'danger' }}">
+                                        {{ 'Pago' if record.status == 'paid' else 'Pendente' if record.status == 'pending' else 'Vencido' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">Nenhum registro financeiro encontrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Lançamento Financeiro -->
+<div class="modal fade" id="newFinancialModal" tabindex="-1" aria-labelledby="newFinancialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newFinancialModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Novo Lançamento Financeiro
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newFinancialForm" method="POST" action="{{ url_for('admin_financial_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="user_id" class="form-label">Associado *</label>
+                            <select class="form-select" name="user_id" id="user_id" required>
+                                <option value="">Selecione um associado</option>
+                                {% for associate in associates %}
+                                <option value="{{ associate.id }}">{{ associate.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Tipo *</label>
+                            <select class="form-select" name="type" id="type" required>
+                                <option value="">Selecione um tipo</option>
+                                <option value="income">Receita</option>
+                                <option value="expense">Despesa</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Categoria *</label>
+                            <select class="form-select" name="category" id="category" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="monthly_fee">Mensalidade</option>
+                                <option value="service">Serviço</option>
+                                <option value="maintenance">Manutenção</option>
+                                <option value="fuel">Combustível</option>
+                                <option value="cleaning">Limpeza</option>
+                                <option value="crane">Guincho</option>
+                                <option value="other">Outros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label">Valor (R$) *</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" id="amount" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição *</label>
+                        <input type="text" class="form-control" name="description" id="description" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Data de Vencimento</label>
+                            <input type="date" class="form-control" name="due_date" id="due_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_date" class="form-label">Data de Pagamento</label>
+                            <input type="date" class="form-control" name="payment_date" id="payment_date">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="pending">Pendente</option>
+                                <option value="paid">Pago</option>
+                                <option value="overdue">Vencido</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_method" class="form-label">Método de Pagamento</label>
+                            <select class="form-select" name="payment_method" id="payment_method">
+                                <option value="">Selecione um método</option>
+                                <option value="cash">Dinheiro</option>
+                                <option value="card">Cartão</option>
+                                <option value="transfer">Transferência</option>
+                                <option value="boleto">Boleto</option>
+                                <option value="pix">PIX</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invoice_number" class="form-label">Número da Nota/Recibo</label>
+                        <input type="text" class="form-control" name="invoice_number" id="invoice_number">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Observações</label>
+                        <textarea class="form-control" name="notes" id="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Criar Lançamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

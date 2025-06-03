@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Administrativo - Marina{% endblock %}
+{% block page_title %}Dashboard Administrativo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome Card -->
+    <div class="col-12 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="card-title mb-2">Bem-vindo, {{ session.user_name }}!</h4>
+                        <p class="card-text mb-0">Painel de controle administrativo da marina</p>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-speedometer2" style="font-size: 3rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-primary fw-bold text-uppercase mb-1">
+                            Total de Associados
+                        </div>
+                        <div class="h5 mb-0 fw-bold">25</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-success border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-success fw-bold text-uppercase mb-1">
+                            Embarcações
+                        </div>
+                        <div class="h5 mb-0 fw-bold">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-ship text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-info border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-info fw-bold text-uppercase mb-1">
+                            Vagas Ocupadas
+                        </div>
+                        <div class="h5 mb-0 fw-bold">15/30</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-grid-3x3 text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-warning border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-warning fw-bold text-uppercase mb-1">
+                            Agendamentos
+                        </div>
+                        <div class="h5 mb-0 fw-bold">8</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-check text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Activities -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Atividades Recentes</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-person-plus text-success me-2"></i>
+                            Novo associado cadastrado: João Silva
+                        </div>
+                        <small class="text-muted">2 horas atrás</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-ship text-primary me-2"></i>
+                            Embarcação "Vento Sul" registrada
+                        </div>
+                        <small class="text-muted">4 horas atrás</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-currency-dollar text-warning me-2"></i>
+                            Pagamento recebido - Maria Santos
+                        </div>
+                        <small class="text-muted">1 dia atrás</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin_associates') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus me-2"></i>Novo Associado
+                    </a>
+                    <a href="{{ url_for('admin_boats') }}" class="btn btn-outline-success">
+                        <i class="bi bi-ship me-2"></i>Nova Embarcação
+                    </a>
+                    <a href="{{ url_for('admin_berths') }}" class="btn btn-outline-info">
+                        <i class="bi bi-grid-3x3 me-2"></i>Gerenciar Vagas
+                    </a>
+                    <a href="{{ url_for('messages') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-envelope me-2"></i>Enviar Aviso
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

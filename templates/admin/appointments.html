@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Agendamentos e Serviços - Marina{% endblock %}
+{% block page_title %}Agendamentos e Serviços{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Lista de Agendamentos</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAppointmentModal">
+                    <i class="bi bi-calendar-plus me-2"></i>Novo Agendamento
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Associado</th>
+                                <th>Embarcação</th>
+                                <th>Serviço</th>
+                                <th>Funcionário</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.scheduled_date }}</td>
+                                <td>{{ appointment.user_name }}</td>
+                                <td>{{ appointment.boat_name or 'N/A' }}</td>
+                                <td>{{ appointment.service_type }}</td>
+                                <td>{{ appointment.employee_name or 'Não atribuído' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'warning' if appointment.status == 'pending' else 'success' if appointment.status == 'confirmed' else 'primary' if appointment.status == 'completed' else 'danger' }}">
+                                        {{ 'Pendente' if appointment.status == 'pending' else 'Confirmado' if appointment.status == 'confirmed' else 'Concluído' if appointment.status == 'completed' else 'Cancelado' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Nenhum agendamento encontrado</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Agendamento -->
+<div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-labelledby="newAppointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newAppointmentModalLabel">
+                    <i class="bi bi-calendar-plus me-2"></i>Novo Agendamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newAppointmentForm" method="POST" action="{{ url_for('admin_appointments_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="user_id" class="form-label">Associado *</label>
+                            <select class="form-select" name="user_id" id="user_id" required>
+                                <option value="">Selecione um associado</option>
+                                {% for associate in associates %}
+                                <option value="{{ associate.id }}">{{ associate.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="boat_id" class="form-label">Embarcação</label>
+                            <select class="form-select" name="boat_id" id="boat_id">
+                                <option value="">Selecione uma embarcação</option>
+                                {% for boat in boats %}
+                                <option value="{{ boat.id }}">{{ boat.name }} - {{ boat.owner_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="scheduled_date" class="form-label">Data e Hora *</label>
+                            <input type="datetime-local" class="form-control" name="scheduled_date" id="scheduled_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="service_type" class="form-label">Tipo de Serviço *</label>
+                            <select class="form-select" name="service_type" id="service_type" required>
+                                <option value="">Selecione um serviço</option>
+                                <option value="crane">Guincho</option>
+                                <option value="fuel">Abastecimento</option>
+                                <option value="cleaning">Limpeza</option>
+                                <option value="maintenance">Manutenção</option>
+                                <option value="entry">Entrada</option>
+                                <option value="exit">Saída</option>
+                                <option value="inspection">Inspeção</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="assigned_employee_id" class="form-label">Funcionário Responsável</label>
+                            <select class="form-select" name="assigned_employee_id" id="assigned_employee_id">
+                                <option value="">Selecione um funcionário</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}">{{ employee.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="estimated_duration" class="form-label">Duração Estimada (minutos)</label>
+                            <input type="number" class="form-control" name="estimated_duration" id="estimated_duration">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição</label>
+                        <textarea class="form-control" name="description" id="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cost" class="form-label">Custo (R$)</label>
+                        <input type="number" step="0.01" class="form-control" name="cost" id="cost">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Criar Agendamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}Controle Financeiro - Marina{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-credit-card me-2"></i>Controle Financeiro</h2>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#financialModal">
+                    <i class="fas fa-eye me-2"></i>Ver Detalhes
+                </button>
+            </div>
+
+            <!-- Resumo Financeiro -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pendente</h6>
+                                    <h4>R$ {{ "%.2f"|format(pending_total) }}</h4>
+                                </div>
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Vencido</h6>
+                                    <h4>R$ {{ "%.2f"|format(overdue_total) }}</h4>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pago (30 dias)</h6>
+                                    <h4>R$ {{ "%.2f"|format(paid_total) }}</h4>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Status da Conta</h6>
+                                    <h4>
+                                        {% if account_status == 'regular' %}
+                                            Regular
+                                        {% elif account_status == 'pending' %}
+                                            Pendente
+                                        {% else %}
+                                            Irregular
+                                        {% endif %}
+                                    </h4>
+                                </div>
+                                <i class="fas fa-user-check fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="statusFilter" class="form-label">Filtrar por Status:</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Todos</option>
+                                <option value="pending">Pendente</option>
+                                <option value="paid">Pago</option>
+                                <option value="overdue">Vencido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchFilter" class="form-label">Buscar:</label>
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Descrição ou categoria...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times me-1"></i>Limpar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Registros Financeiros -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Histórico Financeiro</h5>
+                </div>
+                <div class="card-body">
+                    {% if financial_records %}
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="financialTable">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Descrição</th>
+                                        <th>Categoria</th>
+                                        <th>Valor</th>
+                                        <th>Vencimento</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in financial_records %}
+                                    <tr data-status="{{ record.status }}" data-description="{{ record.description|lower }}" data-category="{{ record.category|lower }}">
+                                        <td>{{ record.created_at.strftime('%d/%m/%Y') if record.created_at else 'N/A' }}</td>
+                                        <td>{{ record.description }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ record.category }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>R$ {{ "%.2f"|format(record.amount) }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if record.due_date %}
+                                                {{ record.due_date }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if record.status == 'pending' %}
+                                                <span class="badge bg-warning">Pendente</span>
+                                            {% elif record.status == 'paid' %}
+                                                <span class="badge bg-success">Pago</span>
+                                            {% elif record.status == 'overdue' %}
+                                                <span class="badge bg-danger">Vencido</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ record.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if record.status in ['pending', 'overdue'] %}
+                                                <button type="button" class="btn btn-sm btn-success" 
+                                                        onclick="openPaymentModal({{ record.id }}, '{{ record.description }}', {{ record.amount }})">
+                                                    <i class="fas fa-credit-card me-1"></i>Pagar
+                                                </button>
+                                            {% elif record.status == 'paid' %}
+                                                <span class="text-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Pago em {{ record.payment_date }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum registro financeiro encontrado</h5>
+                            <p class="text-muted">Seus registros financeiros aparecerão aqui quando disponíveis.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes Financeiros -->
+<div class="modal fade" id="financialModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-line me-2"></i>Detalhes Financeiros
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Informações da Conta -->
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user me-2"></i>Informações da Conta</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <p><strong>Nome:</strong> {{ user.name }}</p>
+                                <p><strong>Plano:</strong> 
+                                    {% if user and user.plan == 'vaga_seca_mensal' %}
+                                        Vaga Seca Mensal
+                                    {% elif user and user.plan == 'vaga_molhada_mensal' %}
+                                        Vaga Molhada Mensal
+                                    {% elif user and user.plan == 'mensalista' %}
+                                        Mensalista
+                                    {% else %}
+                                        {{ user.plan if user and user.plan else 'Não definido' }}
+                                    {% endif %}
+                                </p>
+                                <p><strong>Valor Mensal:</strong> R$ {{ "%.2f"|format(monthly_fee) }}</p>
+                                {% if next_due_date %}
+                                    <p><strong>Próximo Vencimento:</strong> {{ next_due_date }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Histórico de Pagamentos -->
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-history me-2"></i>Últimos Pagamentos</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                {% if payment_history %}
+                                    {% for payment in payment_history %}
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div>
+                                                <small class="text-muted">{{ payment.description }}</small><br>
+                                                <small>{{ payment.date }}</small>
+                                            </div>
+                                            <span class="badge bg-success">R$ {{ "%.2f"|format(payment.amount) }}</span>
+                                        </div>
+                                        {% if not loop.last %}<hr class="my-2">{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">Nenhum pagamento recente</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Pagamento -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-credit-card me-2"></i>Realizar Pagamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('associate_financial_pay') }}" method="POST" id="paymentForm">
+                <div class="modal-body">
+                    <input type="hidden" id="payment_record_id" name="record_id">
+                    
+                    <!-- Informações do Pagamento -->
+                    <div class="alert alert-info">
+                        <h6 id="payment_description"></h6>
+                        <p class="mb-0">Valor: <strong id="payment_amount"></strong></p>
+                    </div>
+
+                    <!-- Método de Pagamento -->
+                    <div class="mb-3">
+                        <label class="form-label">Método de Pagamento:</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card payment-method" onclick="selectPaymentMethod('card')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                        <h6>Cartão</h6>
+                                        <small class="text-muted">Crédito/Débito</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method" onclick="selectPaymentMethod('boleto')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-barcode fa-2x mb-2"></i>
+                                        <h6>Boleto</h6>
+                                        <small class="text-muted">Bancário</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method" onclick="selectPaymentMethod('pix')">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-qrcode fa-2x mb-2"></i>
+                                        <h6>PIX</h6>
+                                        <small class="text-muted">Instantâneo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="payment_method" name="payment_method" required>
+                    </div>
+
+                    <!-- Formulário de Cartão -->
+                    <div id="cardForm" class="payment-form" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Número do Cartão:</label>
+                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validade:</label>
+                                <input type="text" class="form-control" placeholder="MM/AA" maxlength="5">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CVV:</label>
+                                <input type="text" class="form-control" placeholder="123" maxlength="4">
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Nome no Cartão:</label>
+                                <input type="text" class="form-control" placeholder="Nome como impresso no cartão">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informações do Boleto -->
+                    <div id="boletoForm" class="payment-form" style="display: none;">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Boleto Bancário</strong><br>
+                            O boleto será gerado e enviado para seu email. O prazo para pagamento é de 3 dias úteis.
+                        </div>
+                    </div>
+
+                    <!-- Informações do PIX -->
+                    <div id="pixForm" class="payment-form" style="display: none;">
+                        <div class="text-center">
+                            <p><strong>Escaneie o QR Code abaixo:</strong></p>
+                            <img src="{{ url_for('static', filename='images/qr-code-placeholder.png') }}" 
+                                 alt="QR Code PIX" class="img-fluid mb-3" style="max-width: 200px;">
+                            <div class="alert alert-info">
+                                <small>
+                                    <strong>Chave PIX:</strong> marina@exemplo.com<br>
+                                    <strong>Beneficiário:</strong> Marina Central Ltda<br>
+                                    <strong>CNPJ:</strong> 12.345.678/0001-90
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="confirmPaymentBtn" disabled>
+                        <i class="fas fa-check me-2"></i>Confirmar Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-method {
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.payment-method:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+}
+
+.payment-method.selected {
+    border-color: #28a745;
+    background-color: #f8f9fa;
+}
+
+.payment-form {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+</style>
+
+<script>
+// Filtros
+function filterTable() {
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+    const rows = document.querySelectorAll('#financialTable tbody tr');
+
+    rows.forEach(row => {
+        const status = row.dataset.status.toLowerCase();
+        const description = row.dataset.description;
+        const category = row.dataset.category;
+        
+        const statusMatch = !statusFilter || status === statusFilter;
+        const searchMatch = !searchFilter || 
+                           description.includes(searchFilter) || 
+                           category.includes(searchFilter);
+        
+        row.style.display = statusMatch && searchMatch ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    filterTable();
+}
+
+// Event listeners para filtros
+document.getElementById('statusFilter').addEventListener('change', filterTable);
+document.getElementById('searchFilter').addEventListener('input', filterTable);
+
+// Pagamento
+function openPaymentModal(recordId, description, amount) {
+    document.getElementById('payment_record_id').value = recordId;
+    document.getElementById('payment_description').textContent = description;
+    document.getElementById('payment_amount').textContent = 'R$ ' + amount.toFixed(2);
+    
+    // Reset form
+    document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.payment-form').forEach(el => el.style.display = 'none');
+    document.getElementById('payment_method').value = '';
+    document.getElementById('confirmPaymentBtn').disabled = true;
+    
+    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+}
+
+function selectPaymentMethod(method) {
+    // Remove seleção anterior
+    document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.payment-form').forEach(el => el.style.display = 'none');
+    
+    // Seleciona novo método
+    event.currentTarget.classList.add('selected');
+    document.getElementById('payment_method').value = method;
+    document.getElementById('confirmPaymentBtn').disabled = false;
+    
+    // Mostra formulário específico
+    if (method === 'card') {
+        document.getElementById('cardForm').style.display = 'block';
+    } else if (method === 'boleto') {
+        document.getElementById('boletoForm').style.display = 'block';
+    } else if (method === 'pix') {
+        document.getElementById('pixForm').style.display = 'block';
+    }
+}
+
+// Máscaras para cartão
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para número do cartão
+    const cardNumber = document.querySelector('#cardForm input[placeholder="1234 5678 9012 3456"]');
+    if (cardNumber) {
+        cardNumber.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+    }
+    
+    // Máscara para validade
+    const cardExpiry = document.querySelector('#cardForm input[placeholder="MM/AA"]');
+    if (cardExpiry) {
+        cardExpiry.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios e Painel - Marina{% endblock %}
+{% block page_title %}Relatórios e Painel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Overview -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-primary fw-bold text-uppercase mb-1">
+                            Total Associados
+                        </div>
+                        <div class="h5 mb-0 fw-bold">{{ stats.total_associates }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-success border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-success fw-bold text-uppercase mb-1">
+                            Total Embarcações
+                        </div>
+                        <div class="h5 mb-0 fw-bold">{{ stats.total_boats }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-ship text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-info border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-info fw-bold text-uppercase mb-1">
+                            Taxa Ocupação
+                        </div>
+                        <div class="h5 mb-0 fw-bold">{{ stats.occupied_berths }}/{{ stats.total_berths }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-grid-3x3 text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-warning border-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-warning fw-bold text-uppercase mb-1">
+                            Agendamentos Pendentes
+                        </div>
+                        <div class="h5 mb-0 fw-bold">{{ stats.pending_appointments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-check text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Chart Placeholder -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Receitas dos Últimos 6 Meses</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center p-5">
+                    <i class="bi bi-graph-up" style="font-size: 4rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">Gráfico de receitas será implementado aqui</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Reports -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Relatórios Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text me-2"></i>Relatório de Ocupação
+                    </button>
+                    <button class="btn btn-outline-success">
+                        <i class="bi bi-currency-dollar me-2"></i>Relatório Financeiro
+                    </button>
+                    <button class="btn btn-outline-info">
+                        <i class="bi bi-calendar-check me-2"></i>Relatório de Serviços
+                    </button>
+                    <button class="btn btn-outline-warning">
+                        <i class="bi bi-people me-2"></i>Relatório de Associados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

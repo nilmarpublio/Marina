@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Mensagens - Marina{% endblock %}
+{% block page_title %}Sistema de Mensagens{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Mensagens</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Mensagem
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Filtros de Mensagens -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group" aria-label="Filtros de mensagens">
+                            <button type="button" class="btn btn-outline-primary active" id="filterAll" onclick="filterMessages('all')">
+                                <i class="bi bi-envelope me-1"></i>Todas
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" id="filterUnread" onclick="filterMessages('unread')">
+                                <i class="bi bi-envelope-exclamation me-1"></i>Não Lidas
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="filterRead" onclick="filterMessages('read')">
+                                <i class="bi bi-envelope-check me-1"></i>Lidas
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchMessages" placeholder="Buscar mensagens..." onkeyup="searchMessages()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped" id="messagesTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th>Assunto</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for message in messages %}
+                            <tr class="message-row" data-status="{{ message.status }}" data-search="{{ (message.sender_name + ' ' + message.recipient_name|default('Todos') + ' ' + message.subject + ' ' + message.content)|lower }}">
+                                <td>
+                                    {% if message.status == 'unread' %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-envelope-exclamation me-1"></i>Não lida
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-envelope-check me-1"></i>Lida
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ message.sender_name }}</strong>
+                                    {% if message.status == 'unread' and message.recipient_id == session.user_id %}
+                                        <i class="bi bi-circle-fill text-primary ms-1" style="font-size: 0.5rem;"></i>
+                                    {% endif %}
+                                </td>
+                                <td>{{ message.recipient_name or 'Todos' }}</td>
+                                <td>
+                                    <strong>{{ message.subject }}</strong>
+                                    {% if message.content|length > 50 %}
+                                        <br><small class="text-muted">{{ message.content[:50] }}...</small>
+                                    {% else %}
+                                        <br><small class="text-muted">{{ message.content }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ message.sent_at }}</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewMessage({{ message.id }}, '{{ message.subject }}', '{{ message.content }}', '{{ message.sender_name }}', '{{ message.recipient_name or "Todos" }}', '{{ message.sent_at }}', '{{ message.status }}')">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </button>
+                                    {% if message.recipient_id == session.user_id and message.status == 'unread' %}
+                                    <button class="btn btn-sm btn-outline-success" onclick="markAsRead({{ message.id }})">
+                                        <i class="bi bi-check"></i> Marcar Lida
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Contador de mensagens -->
+                <div class="mt-3">
+                    <small class="text-muted">
+                        Total: <span id="totalMessages">{{ messages|length }}</span> mensagens |
+                        Não lidas: <span id="unreadCount">{{ messages|selectattr('status', 'equalto', 'unread')|list|length }}</span> |
+                        Lidas: <span id="readCount">{{ messages|selectattr('status', 'equalto', 'read')|list|length }}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nova Mensagem -->
+<div class="modal fade" id="newMessageModal" tabindex="-1" aria-labelledby="newMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newMessageModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Mensagem
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newMessageForm" method="POST" action="{{ url_for('messages_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="recipient_type" class="form-label">Destinatário *</label>
+                            <select class="form-select" name="recipient_type" id="recipient_type" required onchange="toggleRecipientOptions()">
+                                <option value="">Selecione o tipo</option>
+                                <option value="all">Todos os usuários</option>
+                                <option value="associates">Todos os associados</option>
+                                <option value="employees">Todos os funcionários</option>
+                                <option value="specific">Usuário específico</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3" id="specificRecipientDiv" style="display: none;">
+                            <label for="recipient_id" class="form-label">Usuário Específico</label>
+                            <select class="form-select" name="recipient_id" id="recipient_id">
+                                <option value="">Selecione um usuário</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.name }} ({{ user.role|title }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Assunto *</label>
+                        <input type="text" class="form-control" name="subject" id="subject" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Mensagem *</label>
+                        <textarea class="form-control" name="content" id="content" rows="6" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="urgent" name="urgent">
+                            <label class="form-check-label" for="urgent">
+                                <i class="bi bi-exclamation-triangle text-warning"></i> Marcar como urgente
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Dica:</strong> Use mensagens para comunicar avisos importantes, mudanças de horário, manutenções programadas, etc.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>Enviar Mensagem
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar Mensagem -->
+<div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewMessageModalLabel">
+                    <i class="bi bi-envelope-open me-2"></i>Detalhes da Mensagem
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="messageDetails">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Fechar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="replyToMessage()">
+                    <i class="bi bi-reply me-2"></i>Responder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variáveis globais para controle
+let currentFilter = 'all';
+let currentSearch = '';
+
+function toggleRecipientOptions() {
+    const recipientType = document.getElementById('recipient_type').value;
+    const specificDiv = document.getElementById('specificRecipientDiv');
+    const recipientSelect = document.getElementById('recipient_id');
+    
+    if (recipientType === 'specific') {
+        specificDiv.style.display = 'block';
+        recipientSelect.required = true;
+    } else {
+        specificDiv.style.display = 'none';
+        recipientSelect.required = false;
+        recipientSelect.value = '';
+    }
+}
+
+function filterMessages(filter) {
+    currentFilter = filter;
+    
+    // Atualizar botões ativos
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1)).classList.add('active');
+    
+    applyFilters();
+}
+
+function searchMessages() {
+    currentSearch = document.getElementById('searchMessages').value.toLowerCase();
+    applyFilters();
+}
+
+function applyFilters() {
+    const rows = document.querySelectorAll('.message-row');
+    let visibleCount = 0;
+    let unreadVisible = 0;
+    let readVisible = 0;
+    
+    rows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        const searchText = row.getAttribute('data-search');
+        
+        let showByFilter = true;
+        let showBySearch = true;
+        
+        // Aplicar filtro de status
+        if (currentFilter === 'unread' && status !== 'unread') {
+            showByFilter = false;
+        } else if (currentFilter === 'read' && status !== 'read') {
+            showByFilter = false;
+        }
+        
+        // Aplicar filtro de busca
+        if (currentSearch && !searchText.includes(currentSearch)) {
+            showBySearch = false;
+        }
+        
+        // Mostrar/ocultar linha
+        if (showByFilter && showBySearch) {
+            row.style.display = '';
+            visibleCount++;
+            if (status === 'unread') unreadVisible++;
+            else readVisible++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Atualizar contador
+    document.getElementById('totalMessages').textContent = visibleCount;
+}
+
+function viewMessage(id, subject, content, sender, recipient, sentAt, status) {
+    document.getElementById('messageDetails').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>De:</strong> ${sender}</p>
+                <p><strong>Para:</strong> ${recipient}</p>
+                <p><strong>Data:</strong> ${sentAt}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-${status === 'unread' ? 'warning' : 'success'}">
+                        <i class="bi bi-envelope-${status === 'unread' ? 'exclamation' : 'check'} me-1"></i>
+                        ${status === 'unread' ? 'Não lida' : 'Lida'}
+                    </span>
+                </p>
+                <p><strong>ID:</strong> #${id}</p>
+            </div>
+        </div>
+        <hr>
+        <h6>Assunto:</h6>
+        <p class="fw-bold">${subject}</p>
+        <hr>
+        <h6>Mensagem:</h6>
+        <div class="border rounded p-3 bg-light">
+            ${content.replace(/\n/g, '<br>')}
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewMessageModal'));
+    modal.show();
+    
+    // Marcar como lida se for não lida e for destinatário
+    if (status === 'unread') {
+        markAsRead(id);
+    }
+}
+
+function replyToMessage() {
+    // Fechar modal de visualização
+    const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewMessageModal'));
+    viewModal.hide();
+    
+    // Abrir modal de nova mensagem
+    setTimeout(() => {
+        const newMessageModal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+        newMessageModal.show();
+    }, 300);
+}
+
+function markAsRead(messageId) {
+    fetch(`/messages/${messageId}/mark-read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Atualizar o status na tabela
+            location.reload();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Inicializar filtros ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    applyFilters();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão de Associados - Marina{% endblock %}
+{% block page_title %}Gestão de Associados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Lista de Associados</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAssociateModal">
+                    <i class="bi bi-person-plus me-2"></i>Novo Associado
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Plano</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for associate in associates %}
+                            <tr>
+                                <td>{{ associate.name }}</td>
+                                <td>{{ associate.email }}</td>
+                                <td>{{ associate.phone }}</td>
+                                <td>{{ associate.plan or 'Não definido' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if associate.status == 'active' else 'danger' }}">
+                                        {{ 'Ativo' if associate.status == 'active' else 'Inativo' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editAssociate({{ associate.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewAssociate({{ associate.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAssociate({{ associate.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Novo Associado -->
+<div class="modal fade" id="newAssociateModal" tabindex="-1" aria-labelledby="newAssociateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newAssociateModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>Cadastrar Novo Associado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="newAssociateForm" method="POST" action="{{ url_for('admin_associates_create') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-control" name="name" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">E-mail *</label>
+                            <input type="email" class="form-control" name="email" id="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" name="cpf" id="cpf" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Telefone *</label>
+                            <input type="text" class="form-control" name="phone" id="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço Completo *</label>
+                        <input type="text" class="form-control" name="address" id="address" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="plan" class="form-label">Plano</label>
+                            <select class="form-select" name="plan" id="plan">
+                                <option value="">Selecione um plano</option>
+                                <option value="vaga_seca_mensal">Vaga Seca - Mensal</option>
+                                <option value="vaga_molhada_mensal">Vaga Molhada - Mensal</option>
+                                <option value="vaga_seca_diaria">Vaga Seca - Diária</option>
+                                <option value="vaga_molhada_diaria">Vaga Molhada - Diária</option>
+                                <option value="mensalista">Mensalista</option>
+                                <option value="diarista">Diarista</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="suspended">Suspenso</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Senha *</label>
+                            <input type="password" class="form-control" name="password" id="password" required minlength="6">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">Confirmar Senha *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Informação:</strong> O associado receberá um e-mail com as credenciais de acesso ao sistema.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Cadastrar Associado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Associado -->
+<div class="modal fade" id="editAssociateModal" tabindex="-1" aria-labelledby="editAssociateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAssociateModalLabel">
+                    <i class="bi bi-pencil me-2"></i>Editar Associado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editAssociateForm" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="associate_id" id="edit_associate_id">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_name" class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-control" name="name" id="edit_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_email" class="form-label">E-mail *</label>
+                            <input type="email" class="form-control" name="email" id="edit_email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_cpf" class="form-label">CPF *</label>
+                            <input type="text" class="form-control" name="cpf" id="edit_cpf" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_phone" class="form-label">Telefone *</label>
+                            <input type="text" class="form-control" name="phone" id="edit_phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_address" class="form-label">Endereço Completo *</label>
+                        <input type="text" class="form-control" name="address" id="edit_address" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_plan" class="form-label">Plano</label>
+                            <select class="form-select" name="plan" id="edit_plan">
+                                <option value="">Selecione um plano</option>
+                                <option value="vaga_seca_mensal">Vaga Seca - Mensal</option>
+                                <option value="vaga_molhada_mensal">Vaga Molhada - Mensal</option>
+                                <option value="vaga_seca_diaria">Vaga Seca - Diária</option>
+                                <option value="vaga_molhada_diaria">Vaga Molhada - Diária</option>
+                                <option value="mensalista">Mensalista</option>
+                                <option value="diarista">Diarista</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-select" name="status" id="edit_status">
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
+                                <option value="suspended">Suspenso</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Visualizar Associado -->
+<div class="modal fade" id="viewAssociateModal" tabindex="-1" aria-labelledby="viewAssociateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewAssociateModalLabel">
+                    <i class="bi bi-eye me-2"></i>Detalhes do Associado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="associateDetails">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validação do formulário de novo associado
+document.getElementById('newAssociateForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('As senhas não coincidem!');
+        return false;
+    }
+});
+
+// Máscaras para CPF e telefone
+document.getElementById('cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+});
+
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+
+// Máscaras para o modal de edição
+document.getElementById('edit_cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+});
+
+document.getElementById('edit_phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+
+// Função para editar associado
+function editAssociate(id) {
+    // Aqui você faria uma requisição AJAX para buscar os dados do associado
+    // Por enquanto, vamos apenas abrir o modal
+    const modal = new bootstrap.Modal(document.getElementById('editAssociateModal'));
+    modal.show();
+}
+
+// Função para visualizar associado
+function viewAssociate(id) {
+    // Aqui você faria uma requisição AJAX para buscar os dados do associado
+    // Por enquanto, vamos apenas abrir o modal com dados de exemplo
+    document.getElementById('associateDetails').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Nome:</strong> João Silva</p>
+                <p><strong>Email:</strong> joao@email.com</p>
+                <p><strong>CPF:</strong> 123.456.789-00</p>
+                <p><strong>Telefone:</strong> (11) 99999-9999</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Plano:</strong> Vaga Molhada - Mensal</p>
+                <p><strong>Status:</strong> <span class="badge bg-success">Ativo</span></p>
+                <p><strong>Data Cadastro:</strong> 01/01/2024</p>
+                <p><strong>Última Atividade:</strong> 15/01/2024</p>
+            </div>
+        </div>
+        <hr>
+        <h6>Endereço:</h6>
+        <p>Rua das Flores, 123 - Centro - São Paulo/SP - CEP: 01234-567</p>
+        <hr>
+        <h6>Embarcações:</h6>
+        <ul>
+            <li>Barco do João - Lancha - 8m x 3m</li>
+        </ul>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewAssociateModal'));
+    modal.show();
+}
+
+// Função para deletar associado
+function deleteAssociate(id) {
+    if (confirm('Tem certeza que deseja excluir este associado? Esta ação não pode ser desfeita.')) {
+        // Aqui você faria uma requisição AJAX para deletar o associado
+        alert('Funcionalidade de exclusão será implementada.');
+    }
+}
+</script>
+{% endblock %}
